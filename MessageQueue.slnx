@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/Solution Items/" />
+  <Project Path="MessageQueue.Abstraction/MessageQueue.Abstraction.csproj" />
+  <Project Path="MessageQueue/MessageQueue.csproj" />
+</Solution>
