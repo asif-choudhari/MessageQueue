@@ -5,6 +5,7 @@ on:
     branches:
       - '[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,7 +13,6 @@ permissions:
 jobs:
   Release:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -33,6 +33,12 @@ jobs:
       - name: Pack
         run: dotnet pack --configuration Release --no-build --output ./nupkg -p:PackageVersion=${{ env.VERSION }}
 
+      - name: Upload nupkg as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: ./nupkg/*.nupkg
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -41,4 +47,4 @@ jobs:
           files: ./nupkg/*.nupkg
           generate_release_notes: true
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
