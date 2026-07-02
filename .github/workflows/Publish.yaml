@@ -8,6 +8,9 @@ jobs:
   approve-and-push:
     runs-on: ubuntu-latest
     environment: nuget-production
+    permissions:
+      id-token: write      # ← required for OIDC
+      contents: read
 
     steps:
       - name: Download .nupkg from release
@@ -22,5 +25,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push to NuGet.org
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
