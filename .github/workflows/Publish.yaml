@@ -1,0 +1,26 @@
+name: Push to NuGet
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  approve-and-push:
+    runs-on: ubuntu-latest
+    environment: nuget-production
+
+    steps:
+      - name: Download .nupkg from release
+        uses: robinraju/release-downloader@v1
+        with:
+          tag: ${{ github.event.release.tag_name }}
+          fileName: '*.nupkg'
+          out-file-path: ./nupkg
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Push to NuGet.org
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
