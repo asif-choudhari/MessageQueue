@@ -21,7 +21,6 @@ public static class ServiceCollectionExtensions
             var options = new Options.Options();
             configure(options);
 
-            services.AddScoped<THandler>();
             services.AddScoped<IMessageHandler<TMessage>, THandler>();
 
             services.AddSingleton(new HandlerRegistration(
@@ -35,16 +34,9 @@ public static class ServiceCollectionExtensions
         }
 
         public IServiceCollection RegisterMessageDispatcher(Action<Options.Options> configure)
-        {
-            services.AddAzureServiceBusCore(configure);
-
-            return services;
-        }
-
-        private void AddAzureServiceBusCore(Action<Options.Options> configure)
-        {
+        { 
             services.Configure(configure);
-
+            
             services.TryAddSingleton<ServiceBusClient>(sp =>
             {
                 var options = sp.GetRequiredService<IOptions<Options.Options>>().Value;
@@ -53,6 +45,8 @@ public static class ServiceCollectionExtensions
             });
 
             services.TryAddSingleton<IMessageDispatcher, MessageDispatcher>();
+
+            return services;
         }
     }
 }

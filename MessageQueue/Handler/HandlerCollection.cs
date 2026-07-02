@@ -50,35 +50,39 @@ internal sealed class HandlerCollection(
         ProcessMessageEventArgs args,
         HandlerRegistration registration)
     {
-        await using var scope = scopeFactory.CreateAsyncScope();
+        try
+        {
+            await using var scope = scopeFactory.CreateAsyncScope();
 
-        var handler = scope.ServiceProvider.GetRequiredService(
-            registration.ServiceType);
+            var messageType = registration.MessageType;
+            var serviceType = registration.ServiceType;
+            var handlerType = typeof(IMessageHandler<>).MakeGenericType(messageType);
+            var handlers = scope.ServiceProvider.GetServices(handlerType);
 
-        await using var stream = args.Message.Body.ToStream();
+            await using var stream = args.Message.Body.ToStream();
+            var message = await JsonSerializer.DeserializeAsync(
+                stream,
+                messageType,
+                registration.Options.JsonSerializerOptions,
+                args.CancellationToken);
 
-        var message = await JsonSerializer.DeserializeAsync(
-            stream,
-            registration.MessageType,
-            cancellationToken: args.CancellationToken);
+            if (message is null) throw new InvalidOperationException("Deserialized message was null.");
 
-        if (message is null)
+            var method = handlerType.GetMethod(nameof(IMessageHandler<object>.ProcessAsync));
+
+            var handler = handlers.SingleOrDefault(h => h!.GetType() == serviceType);
+            if (handler is null)
+                throw new InvalidOperationException(
+                    $"No handler of type {serviceType.Name} registered for {messageType.Name}.");
+
+            await (Task)method!.Invoke(handler, [message, args.CancellationToken])!;
+
+            await args.CompleteMessageAsync(args.Message);
+        }
+        catch (Exception ex)
         {
             await args.DeadLetterMessageAsync(args.Message);
-
-            return;
         }
-
-        var method = registration.ServiceType.GetMethod(
-            nameof(IMessageHandler<object>.ProcessAsync));
-
-        await (Task)method!.Invoke(handler,
-        [
-            message,
-            args.CancellationToken
-        ])!;
-
-        await args.CompleteMessageAsync(args.Message);
     }
 
     public async ValueTask DisposeAsync()
