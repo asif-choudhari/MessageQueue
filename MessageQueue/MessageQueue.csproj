@@ -4,27 +4,34 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\MessageQueue.Abstraction\MessageQueue.Abstraction.csproj" />
+        <ProjectReference Include="..\MessageQueue.Abstraction\MessageQueue.Abstraction.csproj" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
-      <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
+        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
+    </ItemGroup>
+
+    <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+        <ItemGroup>
+            <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget','ProjectReference'))" />
+        </ItemGroup>
+    </Target>
+
+    <ItemGroup>
+        <Compile Remove="obj\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="obj\**" />
+        <EmbeddedResource Remove="obj\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Remove="obj\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="obj\**" />
+        <None Remove="obj\**" />
     </ItemGroup>
 
 </Project>
