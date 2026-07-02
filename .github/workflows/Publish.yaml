@@ -1,24 +1,28 @@
 name: Push to NuGet
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["Pack & Create Release"]   # ← must match File 1's `name:` exactly
+    types: [completed]
 
 jobs:
   approve-and-push:
     runs-on: ubuntu-latest
+    # only run if the release workflow actually succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment: nuget-production
     permissions:
-      id-token: write      # ← required for OIDC
+      id-token: write
       contents: read
 
     steps:
       - name: Download .nupkg from release
-        uses: robinraju/release-downloader@v1
+        uses: actions/download-artifact@v4
         with:
-          tag: ${{ github.event.release.tag_name }}
-          fileName: '*.nupkg'
-          out-file-path: ./nupkg
+          name: nupkg
+          path: ./nupkg
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
