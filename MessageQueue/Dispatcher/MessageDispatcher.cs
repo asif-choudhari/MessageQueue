@@ -9,11 +9,11 @@ namespace MessageQueue.Dispatcher;
 internal sealed class MessageDispatcher : IMessageDispatcher, IAsyncDisposable
 {
     private readonly ServiceBusSender _sender;
-    private readonly Options.Options _options;
+    private readonly MessageDispatcherOptions _options;
 
     public MessageDispatcher(
         ServiceBusClient client,
-        IOptions<Options.Options> options)
+        IOptions<MessageDispatcherOptions> options)
     {
         _options = options.Value;
         _sender = client.CreateSender(_options.QueueName);
@@ -42,10 +42,12 @@ internal sealed class MessageDispatcher : IMessageDispatcher, IAsyncDisposable
         {
             ContentType = "application/json",
             MessageId = messageId ?? Guid.NewGuid().ToString("N"),
-            Subject = messageType
+            Subject = messageType,
+            ApplicationProperties =
+            {
+                ["MessageType"] = messageType
+            }
         };
-
-        serviceBusMessage.ApplicationProperties["MessageType"] = messageType;
 
         await _sender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }

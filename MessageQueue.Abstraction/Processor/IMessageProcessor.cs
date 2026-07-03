@@ -1,8 +1,6 @@
-using Azure.Messaging.ServiceBus;
+namespace MessageQueue.Abstraction.Processor;
 
-namespace MessageQueue.Abstraction.Handler;
-
-public interface IHandlerCollection
+public interface IMessageProcessor
 {
     Task StartProcessingAsync(CancellationToken cancellationToken = default);
     

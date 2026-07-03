@@ -1,29 +1,34 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using MessageQueue.Abstraction.Handler;
+using MessageQueue.Abstraction.Processor;
+using MessageQueue.Handler;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-namespace MessageQueue.Handler;
+namespace MessageQueue.Processor;
 
-internal sealed class HandlerCollection(
+internal sealed class MessageProcessor(
     IServiceScopeFactory scopeFactory,
-    IEnumerable<HandlerRegistration> registrations)
-    : IHandlerCollection, IAsyncDisposable
+    IEnumerable<HandlerRecord> records,
+    ILogger<MessageProcessor> logger)
+    : IMessageProcessor, IAsyncDisposable
 {
     private readonly List<ServiceBusProcessor> _processors = [];
     
     public async Task StartProcessingAsync(CancellationToken cancellationToken)
     {
-        foreach (var registration in registrations)
+        foreach (var record in records)
         {
             var client = new ServiceBusClient(
-                registration.Options.ConnectionString);
+                record.MessageHandlerOptions.ConnectionString);
 
             var processor = client.CreateProcessor(
-                registration.Options.QueueName);
+                record.MessageHandlerOptions.QueueName,
+                record.MessageHandlerOptions.ServiceBusProcessorOptions);
 
             processor.ProcessMessageAsync += args =>
-                ProcessAsync(args, registration);
+                ProcessAsync(args, record);
 
             processor.ProcessErrorAsync += args =>
             {
@@ -48,14 +53,14 @@ internal sealed class HandlerCollection(
 
     private async Task ProcessAsync(
         ProcessMessageEventArgs args,
-        HandlerRegistration registration)
+        HandlerRecord record)
     {
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();
 
-            var messageType = registration.MessageType;
-            var serviceType = registration.ServiceType;
+            var messageType = record.MessageType;
+            var serviceType = record.ServiceType;
             var handlerType = typeof(IMessageHandler<>).MakeGenericType(messageType);
             var handlers = scope.ServiceProvider.GetServices(handlerType);
 
@@ -63,7 +68,7 @@ internal sealed class HandlerCollection(
             var message = await JsonSerializer.DeserializeAsync(
                 stream,
                 messageType,
-                registration.Options.JsonSerializerOptions,
+                record.MessageHandlerOptions.JsonSerializerOptions,
                 args.CancellationToken);
 
             if (message is null) throw new InvalidOperationException("Deserialized message was null.");
@@ -81,7 +86,8 @@ internal sealed class HandlerCollection(
         }
         catch (Exception ex)
         {
-            await args.DeadLetterMessageAsync(args.Message);
+            logger.LogError(ex, ex.Message);
+            await args.DeadLetterMessageAsync(args.Message, ex.Message, ex.ToString());
         }
     }
 

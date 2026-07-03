@@ -2,7 +2,7 @@ using MessageQueue.Options;
 
 namespace MessageQueue.Handler;
 
-internal sealed record HandlerRegistration(
+internal sealed record HandlerRecord(
     Type ServiceType,
     Type MessageType,
-    Options.Options Options);
+    MessageHandlerOptions MessageHandlerOptions);
