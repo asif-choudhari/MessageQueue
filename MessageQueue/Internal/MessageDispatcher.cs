@@ -1,5 +1,7 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
+using MessageQueue.Contracts;
+using MessageQueue.Options;
 using Microsoft.Extensions.Logging;
 
 namespace MessageQueue.Internal;

@@ -1,4 +1,4 @@
-namespace MessageQueue;
+namespace MessageQueue.Options;
 
 /// <summary>
 /// Per-dispatcher settings. Transport and retry are configured once on the root

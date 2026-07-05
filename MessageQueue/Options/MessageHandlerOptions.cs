@@ -1,6 +1,6 @@
 using Azure.Messaging.ServiceBus;
 
-namespace MessageQueue;
+namespace MessageQueue.Options;
 
 /// <summary>
 /// Per-handler settings, including tuning for the underlying Service Bus processor.

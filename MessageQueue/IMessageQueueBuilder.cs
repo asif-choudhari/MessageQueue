@@ -1,3 +1,5 @@
+using MessageQueue.Contracts;
+using MessageQueue.Options;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MessageQueue;

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 
-namespace MessageQueue;
+namespace MessageQueue.Options;
 
 /// <summary>
 /// Root settings shared by every handler and dispatcher registered through one

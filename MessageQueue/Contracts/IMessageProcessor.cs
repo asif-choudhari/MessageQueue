@@ -1,4 +1,4 @@
-namespace MessageQueue;
+namespace MessageQueue.Contracts;
 
 /// <summary>
 /// Starts and stops consumption of all registered queues.

@@ -1,4 +1,6 @@
 using System.Text.Json;
+using MessageQueue.Contracts;
+using MessageQueue.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;

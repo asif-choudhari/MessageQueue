@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Azure.Messaging.ServiceBus;
+using MessageQueue.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

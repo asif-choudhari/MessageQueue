@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace MessageQueue;
+namespace MessageQueue.Options;
 
 /// <summary>
 /// Per-registration settings shared by handlers and dispatchers. Values are inherited from the

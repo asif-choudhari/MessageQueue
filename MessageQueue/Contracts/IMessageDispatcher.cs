@@ -1,4 +1,4 @@
-namespace MessageQueue;
+namespace MessageQueue.Contracts;
 
 /// <summary>
 /// Sends messages of type <typeparamref name="TMessage"/> to the queue that type was registered
@@ -19,7 +19,7 @@ namespace MessageQueue;
 /// inject <c>IMessageDispatcher&lt;TMessage&gt;</c> directly; when it is registered for several
 /// queues, pick one with <c>[FromKeyedServices("queue-name")]</c>.
 /// </typeparam>
-public interface IMessageDispatcher<TMessage>
+public interface IMessageDispatcher<in TMessage>
     where TMessage : class
 {
     /// <summary>

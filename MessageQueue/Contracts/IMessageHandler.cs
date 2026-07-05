@@ -1,4 +1,4 @@
-namespace MessageQueue;
+namespace MessageQueue.Contracts;
 
 /// <summary>
 /// Handles messages of type <typeparamref name="TMessage"/> received from a queue.

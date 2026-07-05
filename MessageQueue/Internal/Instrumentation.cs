@@ -17,7 +17,7 @@ internal static class Instrumentation
     private static readonly string? Version =
         typeof(Instrumentation).Assembly.GetName().Version?.ToString();
 
-    public static readonly ActivitySource ActivitySource =
+    private static readonly ActivitySource ActivitySource =
         new(MessageQueueDiagnostics.ActivitySourceName, Version);
 
     private static readonly Meter Meter = new(MessageQueueDiagnostics.MeterName, Version);
