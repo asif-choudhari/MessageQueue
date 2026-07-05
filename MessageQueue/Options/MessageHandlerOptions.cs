@@ -1,11 +1,20 @@
 using Azure.Messaging.ServiceBus;
 
-namespace MessageQueue.Options;
+namespace MessageQueue;
 
-public class MessageHandlerOptions : BaseOptions
+/// <summary>
+/// Per-handler settings, including tuning for the underlying Service Bus processor.
+/// </summary>
+public sealed class MessageHandlerOptions : QueueOptions
 {
     /// <summary>
-    ///  Options to configure Service Bus Message Processor
+    /// Processor tuning: <see cref="ServiceBusProcessorOptions.MaxConcurrentCalls"/>,
+    /// <see cref="ServiceBusProcessorOptions.PrefetchCount"/>, etc.
     /// </summary>
-    public ServiceBusProcessorOptions ServiceBusProcessorOptions { get; set; } = new ServiceBusProcessorOptions();
+    /// <remarks>
+    /// <see cref="ServiceBusProcessorOptions.AutoCompleteMessages"/> is always forced off — the
+    /// library settles every message explicitly (complete on success, abandon on failure).
+    /// When several handlers share one queue, the first registration's processor options apply.
+    /// </remarks>
+    public ServiceBusProcessorOptions ProcessorOptions { get; set; } = new();
 }
