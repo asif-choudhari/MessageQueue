@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
             return services;
         }
 
-        public IServiceCollection RegisterMessageDispatcher(Action<MessageDispatcherOptions> configure)
+        public IServiceCollection RegisterMessageDispatcher(string clientKey, Action<MessageDispatcherOptions> configure)
         { 
             services.Configure(configure);
             
@@ -46,7 +46,7 @@ public static class ServiceCollectionExtensions
                 return new ServiceBusClient(options.ConnectionString);
             });
 
-            services.TryAddSingleton<IMessageDispatcher, MessageDispatcher>();
+            services.TryAddKeyedSingleton<IMessageDispatcher, MessageDispatcher>(clientKey);
 
             return services;
         }
