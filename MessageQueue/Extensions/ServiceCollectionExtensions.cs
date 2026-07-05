@@ -1,54 +1,60 @@
-using Azure.Messaging.ServiceBus;
-using MessageQueue.Abstraction.Dispatcher;
-using MessageQueue.Abstraction.Handler;
-using MessageQueue.Abstraction.Processor;
-using MessageQueue.Dispatcher;
-using MessageQueue.Handler;
-using MessageQueue.Options;
-using MessageQueue.Processor;
-using Microsoft.Extensions.DependencyInjection;
+using MessageQueue;
+using MessageQueue.Internal;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 
-namespace MessageQueue.Extensions;
+// Deliberately in the Microsoft.Extensions.DependencyInjection namespace (the convention for DI
+// registration extensions) so AddMessageQueue is discoverable without any extra using directive.
+namespace Microsoft.Extensions.DependencyInjection;
 
-public static class ServiceCollectionExtensions
+/// <summary>
+/// Entry points for wiring MessageQueue into an application.
+/// </summary>
+public static class MessageQueueServiceCollectionExtensions
 {
-    extension(IServiceCollection services) 
+    /// <summary>
+    /// Adds MessageQueue with a shared Service Bus connection string and returns a builder for
+    /// registering handlers and dispatchers. Consumption starts automatically with the host;
+    /// use the options overload to opt out.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="connectionString">The Azure Service Bus connection string shared by all registrations.</param>
+    /// <returns>A builder used to register handlers and dispatchers.</returns>
+    public static IMessageQueueBuilder AddMessageQueue(
+        this IServiceCollection services,
+        string connectionString)
     {
-        public IServiceCollection RegisterMessageHandler<THandler, TMessage>(Action<MessageHandlerOptions> configure)
-            where THandler : class, IMessageHandler<TMessage>
-            where TMessage : class
-        {
-            var options = new MessageHandlerOptions();
-            configure(options);
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+        return services.AddMessageQueue(options => options.ConnectionString = connectionString);
+    }
 
-            services.AddScoped<IMessageHandler<TMessage>, THandler>();
+    /// <summary>
+    /// Adds MessageQueue using the supplied root options and returns a builder for registering
+    /// handlers and dispatchers.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">
+    /// Configures the shared connection string, JSON defaults, Service Bus client options and
+    /// whether consumption auto-starts (<see cref="MessageQueueOptions.AutoStartProcessing"/>).
+    /// </param>
+    /// <returns>A builder used to register handlers and dispatchers.</returns>
+    public static IMessageQueueBuilder AddMessageQueue(
+        this IServiceCollection services,
+        Action<MessageQueueOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
 
-            services.AddSingleton(new HandlerRecord(
-                typeof(THandler),
-                typeof(TMessage),
-                options));
+        var options = new MessageQueueOptions();
+        configure(options);
 
-            services.TryAddSingleton<IMessageProcessor, MessageProcessor>();
+        services.TryAddSingleton(_ => new ServiceBusClientProvider(options.ClientOptions));
+        services.TryAddSingleton<IMessageProcessor, MessageProcessor>();
 
-            return services;
-        }
+        if (options.AutoStartProcessing)
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IHostedService, MessageProcessingService>());
 
-        public IServiceCollection RegisterMessageDispatcher(string clientKey, Action<MessageDispatcherOptions> configure)
-        { 
-            services.Configure(configure);
-            
-            services.TryAddSingleton<ServiceBusClient>(sp =>
-            {
-                var options = sp.GetRequiredService<IOptions<MessageDispatcherOptions>>().Value;
-
-                return new ServiceBusClient(options.ConnectionString);
-            });
-
-            services.TryAddKeyedSingleton<IMessageDispatcher, MessageDispatcher>(clientKey);
-
-            return services;
-        }
+        return new MessageQueueBuilder(services, options);
     }
 }

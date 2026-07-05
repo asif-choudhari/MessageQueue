@@ -1,0 +1,34 @@
+<Project>
+
+    <!-- Shared build settings for every project in the solution -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- Shared NuGet package metadata (solution-level, not per-project) -->
+    <PropertyGroup>
+        <Authors>asif-choudhari</Authors>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/asif-choudhari/MessageQueue</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/asif-choudhari/MessageQueue.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <!-- Pack the solution-root README and LICENSE into every package.
+         Visible=false keeps them out of the IDE's project tree. -->
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+        <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" Visible="false" />
+    </ItemGroup>
+
+</Project>

@@ -1,5 +1,10 @@
 <Solution>
-  <Folder Name="/Solution Items/" />
-  <Project Path="MessageQueue.Abstraction/MessageQueue.Abstraction.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+    <File Path="LICENSE" />
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path=".gitignore" />
+  </Folder>
   <Project Path="MessageQueue/MessageQueue.csproj" />
 </Solution>
